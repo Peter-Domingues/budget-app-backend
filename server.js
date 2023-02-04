@@ -2,6 +2,7 @@ const express = require("express");
 require("dotenv").config();
 var cors = require("cors");
 const incomingController = require("./controllers/incoming.controller");
+const spendingController = require("./controllers/bill.controller");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,6 +19,8 @@ app.use(function (req, res, next) {
 
 app.use(express.json());
 
+// -------- Incoming --------
+
 app.get("/api/incoming", (req, res) => {
   req.query
     ? incomingController.getIncoming(req.query.month).then((data) => {
@@ -28,6 +31,12 @@ app.get("/api/incoming", (req, res) => {
       });
 });
 
+app.get("/api/history", (req, res) => {
+  incomingController.getAllHistory().then((data) => {
+    res.json(data);
+  });
+});
+
 app.post("/api/incoming", (req, res) => {
   console.log(req.body);
   incomingController.createIncoming(req.body).then((data) => res.json(data));
@@ -35,7 +44,7 @@ app.post("/api/incoming", (req, res) => {
 
 app.put("/api/incoming/:id", (req, res) => {
   incomingController
-    .updateIncoming(req.params.id, req.body.incoming)
+    .updateIncoming(req.params.id, req.body)
     .then((data) => res.json(data));
 });
 
@@ -51,4 +60,38 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening on the port  ${port}`);
+});
+// -------- Bill --------
+
+app.get("/api/bill", (req, res) => {
+  req.query
+    ? spendingController.getSpending(req.query.month).then((data) => {
+        res.json(data);
+      })
+    : spendingController.getSpending().then((data) => {
+        res.json(data);
+      });
+});
+
+app.get("/api/bill/history", (req, res) => {
+  spendingController.getSpendingHistory().then((data) => {
+    res.json(data);
+  });
+});
+
+app.post("/api/bill", (req, res) => {
+  console.log(req.body);
+  spendingController.createSpending(req.body).then((data) => res.json(data));
+});
+
+app.put("/api/bill/:id", (req, res) => {
+  spendingController
+    .updateSpending(req.params.id, req.body)
+    .then((data) => res.json(data));
+});
+
+app.delete("/api/bill/:id", (req, res) => {
+  spendingController
+    .deleteSpending(req.params.id)
+    .then((data) => res.json(data));
 });

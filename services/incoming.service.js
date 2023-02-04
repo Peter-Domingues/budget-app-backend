@@ -6,6 +6,9 @@ class IncomingsService {
   async getIncoming(month) {
     return await incomingRepository.getIncoming(month);
   }
+  async getAllHistory() {
+    return await incomingRepository.getAllHistory();
+  }
 
   async createIncoming(incoming) {
     return await incomingRepository.createIncoming(incoming);

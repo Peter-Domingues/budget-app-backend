@@ -1,20 +1,20 @@
-const { connect } = require("../config/db.config");
+const { connect, disconnect } = require("../config/db.config");
 const { Invoice } = require("../models/invoice.model");
 const logger = require("../logger/api.logger");
 
-class IncomingRepository {
+class SpendingRepository {
   constructor() {
     connect();
   }
 
-  async getIncoming(month) {
+  async getSpending(month) {
     let data = {};
     try {
       month
         ? (data = await Invoice.aggregate([
             {
               $match: {
-                type: "incoming",
+                type: "bill",
                 $expr: {
                   $eq: [{ $month: "$dueDate" }, parseInt(month)],
                 },
@@ -23,7 +23,7 @@ class IncomingRepository {
 
             {
               $group: {
-                _id: { type: "incoming" },
+                _id: { type: "bill" },
                 result: { $push: "$$ROOT" },
               },
             },
@@ -33,12 +33,12 @@ class IncomingRepository {
         : (data = await Invoice.aggregate([
             {
               $match: {
-                type: "incoming",
+                type: "bill",
               },
             },
             {
               $group: {
-                _id: { type: "incoming" },
+                _id: { type: "bill" },
                 result: { $push: "$$ROOT" },
               },
             },
@@ -55,9 +55,8 @@ class IncomingRepository {
     return data[0];
   }
 
-  async getAllHistory() {
+  async getSpendingHistory() {
     let data = {};
-
     try {
       data = await Invoice.aggregate([
         {
@@ -66,52 +65,8 @@ class IncomingRepository {
               year: { $year: "$dueDate" },
               month: { $month: "$dueDate" },
             },
-            MonthIncoming: {
-              $addToSet: {
-                $cond: {
-                  if: {
-                    $eq: ["$type", "incoming"],
-                  },
-                  then: { $sum: "$amount" },
-                  else: 0,
-                },
-              },
-            },
-            MonthSpendings: {
-              $addToSet: {
-                $cond: {
-                  if: {
-                    $eq: ["$type", "bill"],
-                  },
-                  then: { $sum: "$amount" },
-                  else: 0,
-                },
-              },
-            },
-          },
-        },
-        {
-          $group: {
-            _id: {
-              year: "$_id.year",
-            },
-            Months: {
-              $addToSet: {
-                Month: "$_id.month",
-                MonthIncoming: { $sum: "$MonthIncoming" },
-                MonthSpendings: { $sum: "$MonthSpendings" },
-              },
-            },
-          },
-        },
-        {
-          $addFields: {
-            YearProfit: {
-              $subtract: [
-                { $sum: "$Months.MonthIncoming" },
-                { $sum: "$Months.MonthSpendings" },
-              ],
-            },
+            totalValue: { $sum: "$amount" },
+            result: { $push: "$$ROOT" },
           },
         },
         { $sort: { _id: 1 } },
@@ -123,30 +78,30 @@ class IncomingRepository {
     return data;
   }
 
-  async createIncoming(incoming) {
+  async createSpending(bill) {
     let data = {};
     try {
-      data = await Invoice.create(incoming);
+      data = await Invoice.create(bill);
     } catch (err) {
       logger.error("Error::" + err);
     }
     return data;
   }
 
-  async updateIncoming(id, incoming) {
+  async updateSpending(id, bill) {
     let data = {};
     try {
-      data = await Invoice.updateOne(id, incoming);
+      data = await Invoice.updateOne(id, bill);
     } catch (err) {
       logger.error("Error::" + err);
     }
     return data;
   }
 
-  async deleteIncoming(incomingId) {
+  async deleteSpending(spendingId) {
     let data = {};
     try {
-      data = await Invoice.deleteOne({ _id: incomingId });
+      data = await Invoice.deleteOne({ _id: spendingId });
     } catch (err) {
       logger.error("Error::" + err);
     }
@@ -154,4 +109,4 @@ class IncomingRepository {
   }
 }
 
-module.exports = new IncomingRepository();
+module.exports = new SpendingRepository();

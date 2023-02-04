@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
 
-const incomingSchema = new mongoose.Schema({
+const SpendingSchema = new mongoose.Schema({
   font: String,
   amount: Number,
   dueDate: Date,
   isChecked: Boolean,
 });
 
-const Incoming = mongoose.model("incoming", incomingSchema);
+const Bill = mongoose.model("bill", SpendingSchema);
 
 module.exports = {
-  Incoming,
+  Bill,
 };
