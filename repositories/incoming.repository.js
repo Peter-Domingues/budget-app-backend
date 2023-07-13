@@ -54,6 +54,70 @@ class IncomingRepository {
     }
     return data[0];
   }
+  async getSpecificHistory(month, year) {
+    let data = {};
+
+    try {
+      data = await Invoice.aggregate([
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: [{ $month: "$dueDate" }, parseInt(month)] },
+                { $eq: [{ $year: "$dueDate" }, parseInt(year)] },
+              ],
+            },
+          },
+        },
+
+        {
+          $group: {
+            _id: {
+              month: { $month: "$dueDate" },
+            },
+            result: { $push: "$$ROOT" },
+            MonthIncoming: {
+              $addToSet: {
+                $cond: {
+                  if: {
+                    $eq: ["$type", "incoming"],
+                  },
+                  then: { $sum: "$amount" },
+                  else: 0,
+                },
+              },
+            },
+            MonthSpendings: {
+              $addToSet: {
+                $cond: {
+                  if: {
+                    $eq: ["$type", "bill"],
+                  },
+                  then: { $sum: "$amount" },
+                  else: 0,
+                },
+              },
+            },
+          },
+        },
+
+        {
+          $addFields: {
+            Total: {
+              $subtract: [
+                { $sum: "$MonthIncoming" },
+                { $sum: "$MonthSpendings" },
+              ],
+            },
+          },
+        },
+      ]);
+    } catch (err) {
+      logger.error("Error::" + err);
+      return err.message;
+    }
+    return data[0];
+  }
 
   async getAllHistory() {
     let data = {};

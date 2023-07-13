@@ -6,9 +6,15 @@ class IncomingController {
     logger.info("Controller: getIncoming");
     return await incomingService.getIncoming(month);
   }
+
   async getAllHistory() {
     logger.info("Controller: getAllHistory");
     return await incomingService.getAllHistory();
+  }
+
+  async getSpecificHistory(month, year) {
+    logger.info("Controller: getSpecificHistory");
+    return await incomingService.getSpecificHistory(month, year);
   }
 
   async createIncoming(incoming) {

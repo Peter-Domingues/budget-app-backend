@@ -9,6 +9,9 @@ class IncomingsService {
   async getAllHistory() {
     return await incomingRepository.getAllHistory();
   }
+  async getSpecificHistory(month, year) {
+    return await incomingRepository.getSpecificHistory(month, year);
+  }
 
   async createIncoming(incoming) {
     return await incomingRepository.createIncoming(incoming);

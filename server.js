@@ -22,19 +22,21 @@ app.use(express.json());
 // -------- Incoming --------
 
 app.get("/api/incoming", (req, res) => {
-  req.query
-    ? incomingController.getIncoming(req.query.month).then((data) => {
-        res.json(data);
-      })
-    : incomingController.getIncoming().then((data) => {
-        res.json(data);
-      });
+  incomingController.getIncoming(req.query.month).then((data) => {
+    res.json(data);
+  });
 });
 
 app.get("/api/history", (req, res) => {
-  incomingController.getAllHistory().then((data) => {
-    res.json(data);
-  });
+  req.query.month
+    ? incomingController
+        .getSpecificHistory(req.query.month, req.query.year)
+        .then((data) => {
+          res.json(data);
+        })
+    : incomingController.getAllHistory().then((data) => {
+        res.json(data);
+      });
 });
 
 app.post("/api/incoming", (req, res) => {
@@ -74,7 +76,7 @@ app.get("/api/bill", (req, res) => {
 });
 
 app.get("/api/bill/history", (req, res) => {
-  spendingController.getSpendingHistory().then((data) => {
+  spendingController.getAllHistory().then((data) => {
     res.json(data);
   });
 });
